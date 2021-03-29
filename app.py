@@ -10,7 +10,7 @@ async def on_startup(dispatcher: Dispatcher):
     # await on_startup_notify(dispatcher)
     # Создаем таблицы в бд
     await manager.setup()
-
+    logger.info("Bot started")
 
 if __name__ == '__main__':
     from handlers import dp

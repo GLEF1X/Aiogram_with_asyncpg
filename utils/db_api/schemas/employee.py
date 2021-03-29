@@ -34,12 +34,14 @@ class Employee(BaseDB):
             pass
 
     async def add_entry(self, employee_type: Literal['Плиточник', 'Маляр'], name: str,
-                        phone_number: str, photo_id: Optional[int] = None,
+                        phone_number: str,
+                        type_of_employment: Literal['Занят', 'Не занят'],
+                        photo_id: Optional[int] = None,
                         comment: Optional[str] = None) -> Any:
-        sql = f"""INSERT INTO {self.db_name}(type, name, phone_number, comment, photo_id)
-        VALUES($1, $2, $3, $4, $5) RETURNING *"""
+        sql = f"""INSERT INTO {self.db_name}(type, name, phone_number, comment, photo_id, type_of_employment)
+        VALUES($1, $2, $3, $4, $5, $6) RETURNING *"""
         return await self.execute(
-            sql, employee_type, name, phone_number, comment, photo_id, fetchrow=True
+            sql, employee_type, name, phone_number, comment, photo_id, type_of_employment, fetchrow=True
         )
 
     async def select_entry(self, or_format: bool = False, **kwargs: Any) -> Optional[List[asyncpg.Record]]:

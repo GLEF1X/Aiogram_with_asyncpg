@@ -9,7 +9,7 @@ from loguru import logger
 from data.config import NUMBER_PATTERN
 from keyboards.default.start_keyboards import cancel_keyboard, add_master_keyboard, \
     generate_start_keyboard
-from keyboards.inline.inline_keyboards import choose_type_master_keyboard
+from keyboards.inline.inline_keyboards import choose_type_master_keyboard, add_comment_keyboard
 from loader import dp, manager
 from states.GeneralState import StartState, SearchMaster
 from utils.misc.help_functions import parse_number
@@ -85,8 +85,9 @@ async def enter_master_number(msg: types.Message, state: FSMContext):
 
 @dp.callback_query_handler(state=SearchMaster.old_phone_number, text='use_old_number')
 async def enter_comment(call: types.CallbackQuery):
-    await call.message.answer(
-        text='Отлично, введите комментарий к работнику'
+    await call.message.edit_text(
+        text='Отлично, выберите, занят ли работник',
+        reply_markup=add_comment_keyboard
     )
     await SearchMaster.enter_comment.set()
 
@@ -106,34 +107,46 @@ async def enter_comment_2(msg: types.Message, state: FSMContext):
         raise CancelHandler()
     await state.update_data(phone_number=msg.text)
     await msg.answer(
-        text='Отлично, введите комментарий к работнику'
+        text='Отлично, выберите, занят ли работник',
+        reply_markup=add_comment_keyboard
     )
     await SearchMaster.enter_comment.set()
 
 
-@dp.message_handler(state=SearchMaster.enter_comment)
-async def choose_employee_type(msg: types.Message, state: FSMContext):
+@dp.callback_query_handler(state=SearchMaster.enter_comment)
+async def choose_employee_type(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(
-        comment=msg.text
+        comment=call.data
     )
-    await msg.answer('Выберите тип работника', reply_markup=choose_type_master_keyboard())
+    await call.message.edit_text('Выберите тип работника', reply_markup=choose_type_master_keyboard())
+    await SearchMaster.enter_description.set()
+
+
+@dp.callback_query_handler(state=SearchMaster.enter_description)
+async def enter_description(call: types.CallbackQuery, state: FSMContext):
+    await call.message.answer('Введите дополнительную информацию о работнике')
+    await call.message.delete()
     await SearchMaster.by_finish.set()
+    await state.update_data(
+        master_type=call.data
+    )
 
 
-@dp.callback_query_handler(state=SearchMaster.by_finish)
-async def add_master(call: types.CallbackQuery, state: FSMContext):
+@dp.message_handler(state=SearchMaster.by_finish)
+async def add_master(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         phone_number: str = data.get('phone_number')
         name: str = data.get('name')
         comment: str = data.get('comment')
-        master_type: str = call.data
+        master_type: str = data.get('master_type')
     parsed_number = parse_number(phone_number)
     if parsed_number.find("+") == -1:
         parsed_number = "+" + parsed_number
     text = f"""Имя: {name}
 Номер: {parsed_number}
 Комментарий: {comment}
-Специализация работника: {master_type}"""
+Специализация работника: {master_type}
+Доп. информация: {message.text}"""
     markup = InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -144,12 +157,13 @@ async def add_master(call: types.CallbackQuery, state: FSMContext):
             ]
         ]
     )
-    await call.message.edit_text('Вы действительно хотите добавить работника?\n'
-                                 f'{text}', reply_markup=markup)
+    await message.answer('Вы действительно хотите добавить работника?\n'
+                         f'{text}', reply_markup=markup)
     await SearchMaster.last.set()
     await state.update_data(
         master_type=master_type,
-        phone_number=parsed_number
+        phone_number=parsed_number,
+        info=message.text
     )
 
 
@@ -160,11 +174,13 @@ async def add_new_master(call: types.CallbackQuery, state: FSMContext):
         name = data.get('name')
         comment = data.get('comment')
         master_type = data.get('master_type')
+        info = data.get('info')
     await manager.employee.add_entry(
         employee_type=master_type,
-        comment=comment,
+        type_of_employment=comment,
         name=name,
-        phone_number=phone_number
+        phone_number=phone_number,
+        comment=info
     )
     await call.message.answer('Успешно добавил нового сотрудника',
                               reply_markup=generate_start_keyboard(call))

@@ -16,6 +16,7 @@ class SearchMaster(StatesGroup):
     old_phone_number = State()
     new_phone_number = State()
     enter_comment = State()
+    enter_description = State()
     by_finish = State()
     last = State()
 

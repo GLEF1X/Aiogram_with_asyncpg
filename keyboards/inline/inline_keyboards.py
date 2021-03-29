@@ -57,3 +57,15 @@ def change_comment_keyboard_generator(employee_id: int) -> InlineKeyboardMarkup:
         ]
     )
     return markup
+
+
+add_comment_keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text='Занят',
+                                 callback_data='Занят'),
+            InlineKeyboardButton(text='Не занят',
+                                 callback_data='Не занят')
+        ]
+    ]
+)
