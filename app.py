@@ -1,13 +1,19 @@
-from aiogram import executor
+from aiogram import executor, Dispatcher
+from loguru import logger
 
-from loader import dp
-import middlewares, filters, handlers
-from utils.notify_admins import on_startup_notify
+from loader import manager
 
-async def on_startup(dispatcher):
+
+@logger.catch
+async def on_startup(dispatcher: Dispatcher):
     # Уведомляет про запуск
-    await on_startup_notify(dispatcher)
+    # await on_startup_notify(dispatcher)
+    # Создаем таблицы в бд
+    await manager.setup()
 
 
 if __name__ == '__main__':
-    executor.start_polling(dp, on_startup=on_startup)
+    from handlers import dp
+
+    logger.info('Starting bot')
+    executor.start_polling(dp, on_startup=on_startup, skip_updates=True)
