@@ -8,9 +8,10 @@ from keyboards.default.start_keyboards import master_types_keyboard, generate_ma
     generate_start_keyboard
 from keyboards.inline.inline_keyboards import change_comment, change_comment_keyboard_generator
 from loader import dp, bot, manager
-from states.GeneralState import StartState, SearchMaster, AdminPanel
+from states.GeneralState import StartState, SearchMaster, AdminPanel, AddPartner
 
 
+@dp.message_handler(text='Вернуться назад', state=AddPartner.all_states)
 @dp.message_handler(text='Вернуться назад', state=AdminPanel.all_states)
 @dp.message_handler(text='Вернуться назад', state=SearchMaster.all_states)
 @dp.message_handler(text='Вернуться назад', state=StartState.choose_partner_type)

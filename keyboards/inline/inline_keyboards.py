@@ -69,3 +69,14 @@ add_comment_keyboard = InlineKeyboardMarkup(
         ]
     ]
 )
+
+add_partner_keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text='Да, добавить', callback_data='add_partner')
+        ],
+        [
+            InlineKeyboardButton(text='Сбросить', callback_data='reset')
+        ]
+    ]
+)

@@ -26,3 +26,14 @@ class AdminPanel(StatesGroup):
     enter_master_id = State()
     choose_param_to_change = State()
     enter_param_value = State()
+
+
+class AddPartner(StatesGroup):
+    enter_partner_service = State()
+    enter_company_name = State()
+    enter_contact_name = State()
+    enter_insta_link = State()
+    enter_whatsapp_link = State()
+    enter_contact_number = State()
+    enter_comment = State()
+    final = State()
